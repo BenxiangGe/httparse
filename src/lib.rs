@@ -433,9 +433,21 @@ pub const EMPTY_HEADER: Header<'static> = Header { name: "", value: b"" };
 #[inline]
 fn parse_version(bytes: &mut Bytes) -> Result<u8> {
     if let Some(mut eight) = bytes.next_8() {
-        expect!(eight._0() => b'H' |? Err(Error::Version));
+        //expect!(eight._0() => b'H' |? Err(Error::Version));
+        match eight._0() {
+            v@b'H' => v,
+            v@b'R' => v,
+            _ => return Err(Error::Version)
+        };
+
         expect!(eight._1() => b'T' |? Err(Error::Version));
-        expect!(eight._2() => b'T' |? Err(Error::Version));
+        // expect!(eight._2() => b'T' |? Err(Error::Version));
+        match eight._2() {
+            v@b'T' => v,
+            v@b'S' => v,
+            _ => return Err(Error::Version)
+        };
+
         expect!(eight._3() => b'P' |? Err(Error::Version));
         expect!(eight._4() => b'/' |? Err(Error::Version));
         expect!(eight._5() => b'1' |? Err(Error::Version));
@@ -452,9 +464,23 @@ fn parse_version(bytes: &mut Bytes) -> Result<u8> {
 
     // If there aren't at least 8 bytes, we still want to detect early
     // if this is a valid version or not. If it is, we'll return Partial.
-    expect!(bytes.next() == b'H' => Err(Error::Version));
+
+    // expect!(bytes.next() == b'H' => Err(Error::Version));
+    match bytes.next() {
+        v@Some(b'H') => v,
+        v@Some(b'R') => v,
+        _ => return Err(Error::Version)
+    };
+
     expect!(bytes.next() == b'T' => Err(Error::Version));
-    expect!(bytes.next() == b'T' => Err(Error::Version));
+
+    // expect!(bytes.next() == b'T' => Err(Error::Version));
+    match bytes.next() {
+        v@Some(b'T') => v,
+        v@Some(b'S') => v,
+        _ => return Err(Error::Version)
+    };
+
     expect!(bytes.next() == b'P' => Err(Error::Version));
     expect!(bytes.next() == b'/' => Err(Error::Version));
     expect!(bytes.next() == b'1' => Err(Error::Version));
